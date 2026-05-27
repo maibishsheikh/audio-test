@@ -18,9 +18,4 @@ export default defineConfig({
       },
     },
   },
-  server: {
-    proxy: {
-      '/api/elevenlabs': 'http://localhost:3001',
-    },
-  },
 });
