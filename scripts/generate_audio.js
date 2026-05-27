@@ -32,7 +32,7 @@ function loadEnvLocal() {
 loadEnvLocal();
 
 // ── ElevenLabs config ───────────────────────────────────────────────────────
-const VOICE_ID = 'iBo5PWT1qLiEyqhM7TrG'; // Alice — Clear, Engaging Educator
+const VOICE_ID = 'Xb7hH8MSUJpSbSDYk0k2'; // Alice — Clear, Engaging Educator
 const MODEL_ID = 'eleven_multilingual_v2';
 const API_KEY  = process.env.VITE_ELEVENLABS_API_KEY;
 
