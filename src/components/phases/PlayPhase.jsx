@@ -7,7 +7,7 @@ import Mascot from '../shared/Mascot';
 import SpeechBubble from '../shared/SpeechBubble';
 import Confetti from '../shared/Confetti';
 import { buildSessionQuestions } from '../../utils/questionEngine';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { playIntroNarration, streakNarration } from '../../utils/narration';
 
 const ZONES = [
@@ -85,6 +85,7 @@ export default function PlayPhase() {
     setSessionQuestions, advanceQuestion, answerCorrect, answerIncorrect,
     calculateStars, awardBadge,
   } = useGame();
+  const narrationRef = useRef(null);
 
   const [started,      setStarted]      = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -109,7 +110,10 @@ export default function PlayPhase() {
       const ns = streak + 1;
       if ([3,5,10].includes(ns)) {
         setStreakVal(ns); setShowBanner(true); setShowConfetti(true);
-        if (audioEnabled) narrate(streakNarration(ns), true);
+        if (audioEnabled) {
+          narrationRef.current?.cancel();
+          narrationRef.current = narrate(streakNarration(ns), true);
+        }
         setTimeout(() => { setShowBanner(false); setShowConfetti(false); }, 3000);
       }
     } else {
@@ -123,6 +127,7 @@ export default function PlayPhase() {
     calculateStars();
     const acc = questionsAnswered > 0 ? (questionsCorrect / questionsAnswered) * 100 : 0;
     awardBadge(acc >= 90 ? 'place-value-master' : acc >= 70 ? 'place-value-explorer' : 'place-value-learner');
+    narrationRef.current?.cancel();
     stopNarration();
     advancePhase();
   };
@@ -157,7 +162,14 @@ export default function PlayPhase() {
         </div>
         <motion.button
           className="btn btn-primary"
-          onClick={() => { setStarted(true); if (audioEnabled) narrate(playIntroNarration(), true); }}
+          onClick={() => {
+            setStarted(true);
+            if (audioEnabled) {
+              preloadNarration(playIntroNarration());
+              narrationRef.current?.cancel();
+              narrationRef.current = narrate(playIntroNarration(), true);
+            }
+          }}
           whileHover={{scale:1.06}} whileTap={{scale:0.96}}
           style={{fontSize:'1.2rem', padding:'15px 42px'}}
         >

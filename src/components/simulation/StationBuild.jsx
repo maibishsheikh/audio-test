@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PlaceValueChart from './PlaceValueChart';
 import { randomDistributedNumber } from '../../utils/placeValue';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { simulateStationAIntro, simulateCorrectNarration, simulateIncorrectNarration } from '../../utils/narration';
 
 const ROUNDS = 3;
@@ -14,10 +14,24 @@ export default function StationBuild({ audioEnabled, onComplete }) {
   const [answered,     setAnswered]     = useState(false);
   const [lastResult,   setLastResult]   = useState(null);
   const [resetKey,     setResetKey]     = useState(0); // ← increment to reset chart
+  const narrationRef = useRef(null);
 
   useEffect(() => {
-    if (audioEnabled) narrate(simulateStationAIntro(), true);
-    return () => stopNarration();
+    if (audioEnabled) {
+      preloadNarration(simulateStationAIntro());
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(simulateStationAIntro(), true);
+      }, 200);
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
+    }
+    return () => {
+      narrationRef.current?.cancel();
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const handleComplete = (isCorrect) => {
@@ -25,7 +39,8 @@ export default function StationBuild({ audioEnabled, onComplete }) {
     setAnswered(true);
     setLastResult(isCorrect);
     if (audioEnabled) {
-      narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
+      narrationRef.current?.cancel();
+      narrationRef.current = narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
     }
   };
 

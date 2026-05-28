@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import Mascot from '../shared/Mascot';
 import SpeechBubble from '../shared/SpeechBubble';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { wonderNarration } from '../../utils/narration';
 
 /**
@@ -12,24 +12,42 @@ import { wonderNarration } from '../../utils/narration';
 export default function WonderPhase() {
   const { advancePhase, audioEnabled } = useGame();
   const [showContinue, setShowContinue] = useState(false);
+  const narrationRef = useRef(null);
 
   useEffect(() => {
     if (audioEnabled) {
-      narrate(wonderNarration(), true);
+      preloadNarration(wonderNarration());
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(wonderNarration(), true);
+      }, 200);
+
+      // Enable continue button after ~5 seconds (block animation completes at 3s + buffer)
+      const continueTimer = setTimeout(() => {
+        setShowContinue(true);
+      }, 5000);
+
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(continueTimer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
     }
 
-    // Enable continue button after ~5 seconds (block animation completes at 3s + buffer)
-    const timer = setTimeout(() => {
+    // Enable continue button after ~5 seconds even if audio disabled
+    const continueTimer = setTimeout(() => {
       setShowContinue(true);
     }, 5000);
 
     return () => {
+      clearTimeout(continueTimer);
+      narrationRef.current?.cancel();
       stopNarration();
-      clearTimeout(timer);
     };
   }, [audioEnabled]);
 
   const handleContinue = () => {
+    narrationRef.current?.cancel();
     stopNarration();
     advancePhase();
   };

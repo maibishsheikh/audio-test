@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useGame } from '../context/GameContext';
 import Mascot from './shared/Mascot';
 import SpeechBubble from './shared/SpeechBubble';
-import { narrate, stopNarration } from '../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../utils/audio';
 import { introNarration } from '../utils/narration';
 
 /**
@@ -11,15 +11,29 @@ import { introNarration } from '../utils/narration';
  */
 export default function IntroScreen() {
   const { advancePhase, audioEnabled } = useGame();
+  const narrationRef = useRef(null);
 
   useEffect(() => {
     if (audioEnabled) {
-      narrate(introNarration(), true);
+      preloadNarration(introNarration());
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(introNarration(), true);
+      }, 200);
+
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
     }
-    return () => stopNarration();
+    return () => {
+      narrationRef.current?.cancel();
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const handleBegin = () => {
+    narrationRef.current?.cancel();
     stopNarration();
     advancePhase();
   };

@@ -221,6 +221,16 @@ async function main() {
     const { text, style } = PHRASES[i];
     process.stdout.write(`[${String(i + 1).padStart(2)}/${PHRASES.length}] "${text.substring(0, 55)}${text.length > 55 ? '…' : ''}"\n`);
 
+    const filename = `audio_${slugify(text)}_${i}.mp3`;
+    const audioDir = path.join(__dirname, '..', 'public', 'assets', 'audio');
+    const filepath = path.join(audioDir, filename);
+
+    if (fs.existsSync(filepath)) {
+      console.log(`  ✓ Skipping (exists): ${filename}`);
+      audioMapEntries[text] = `/assets/audio/${filename}`;
+      continue;
+    }
+
     try {
       const result = await generateAudio(text, style, i);
       audioMapEntries[result.text] = result.path;

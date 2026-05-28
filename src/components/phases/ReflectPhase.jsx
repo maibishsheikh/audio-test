@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import BadgeDisplay from '../shared/BadgeDisplay';
 import Mascot from '../shared/Mascot';
 import SpeechBubble from '../shared/SpeechBubble';
 import Confetti from '../shared/Confetti';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { reflectNarration } from '../../utils/narration';
 
 const BADGE_INFO = {
@@ -49,15 +49,31 @@ export default function ReflectPhase() {
   const [quizIndex, setQuizIndex] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [showConfetti, setShowConfetti] = useState(false);
+  const narrationRef = useRef(null);
 
   const earnedBadge = BADGE_INFO[badges[0]] || BADGE_INFO['place-value-learner'];
   const accuracy = questionsAnswered > 0 ? Math.round((questionsCorrect / questionsAnswered) * 100) : 0;
 
   useEffect(() => {
-    if (audioEnabled) narrate(reflectNarration(stars), true);
+    if (audioEnabled) {
+      preloadNarration(reflectNarration(stars));
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(reflectNarration(stars), true);
+      }, 200);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 4000);
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
+    }
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 4000);
-    return () => stopNarration();
+    return () => {
+      narrationRef.current?.cancel();
+      stopNarration();
+    };
   }, [audioEnabled, stars]);
 
   const handleQuizAnswer = (opt) => {
@@ -70,7 +86,10 @@ export default function ReflectPhase() {
       setQuizIndex(i => i + 1);
     } else {
       setPhase('badge');
-      if (audioEnabled) narrate([{ text: "Outstanding work! You've mastered numbers to 200!", style: 'celebration' }], true);
+      if (audioEnabled) {
+        narrationRef.current?.cancel();
+        narrationRef.current = narrate([{ text: "Outstanding work! You've mastered numbers to 200!", style: 'celebration' }], true);
+      }
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 4000);
     }
@@ -137,7 +156,7 @@ export default function ReflectPhase() {
 
         <motion.button
           className="btn btn-primary"
-          onClick={() => { stopNarration(); setPhase('quiz'); }}
+          onClick={() => { narrationRef.current?.cancel(); stopNarration(); setPhase('quiz'); }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           style={{ fontSize: '1.125rem', padding: '14px 40px' }}
@@ -274,7 +293,7 @@ export default function ReflectPhase() {
           <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', flexWrap: 'wrap' }}>
             <motion.button
               className="btn btn-primary"
-              onClick={() => { stopNarration(); resetGame(); }}
+              onClick={() => { narrationRef.current?.cancel(); stopNarration(); resetGame(); }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{ fontSize: '1.125rem', padding: '14px 36px' }}

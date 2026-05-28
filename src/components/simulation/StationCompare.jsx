@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BasetenBlock from './BasetenBlock';
 import { decompose, compare, randomDistributedNumber } from '../../utils/placeValue';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { simulateStationCIntro, simulateCorrectNarration, simulateIncorrectNarration } from '../../utils/narration';
 
 const ROUNDS = 3;
@@ -36,10 +36,24 @@ export default function StationCompare({ audioEnabled, onComplete }) {
   const [chosen, setChosen] = useState(null);
   const [answered, setAnswered] = useState(false);
   const [roundResults, setRoundResults] = useState([]);
+  const narrationRef = useRef(null);
 
   useEffect(() => {
-    if (audioEnabled) narrate(simulateStationCIntro(), true);
-    return () => stopNarration();
+    if (audioEnabled) {
+      preloadNarration(simulateStationCIntro());
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(simulateStationCIntro(), true);
+      }, 200);
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
+    }
+    return () => {
+      narrationRef.current?.cancel();
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const correctSymbol = compare(numA, numB);
@@ -50,7 +64,8 @@ export default function StationCompare({ audioEnabled, onComplete }) {
     setAnswered(true);
     const isCorrect = sym === correctSymbol;
     if (audioEnabled) {
-      narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
+      narrationRef.current?.cancel();
+      narrationRef.current = narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
     }
     setRoundResults(prev => [...prev, isCorrect]);
   };

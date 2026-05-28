@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,8 +20,8 @@ async function main() {
     return;
   }
 
-  const audioMapModule = await import(audioMapPath);
-  const audioMap = audioMapModule.default;
+  const audioMapModule = await import(pathToFileURL(audioMapPath).href);
+  const audioMap = audioMapModule.audioMap || audioMapModule.default;
   
   // Get all referenced files
   const referencedFiles = new Set(

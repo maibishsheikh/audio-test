@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BasetenBlock from './BasetenBlock';
 import { decompose, randomDistributedNumber } from '../../utils/placeValue';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { simulateStationBIntro, simulateCorrectNarration, simulateIncorrectNarration } from '../../utils/narration';
 
 const ROUNDS = 3;
@@ -24,10 +24,24 @@ export default function StationRead({ audioEnabled, onComplete }) {
   const [selected, setSelected] = useState(null);
   const [roundResults, setRoundResults] = useState([]);
   const [answered, setAnswered] = useState(false);
+  const narrationRef = useRef(null);
 
   useEffect(() => {
-    if (audioEnabled) narrate(simulateStationBIntro(), true);
-    return () => stopNarration();
+    if (audioEnabled) {
+      preloadNarration(simulateStationBIntro());
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(simulateStationBIntro(), true);
+      }, 200);
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+        stopNarration();
+      };
+    }
+    return () => {
+      narrationRef.current?.cancel();
+      stopNarration();
+    };
   }, [audioEnabled]);
 
   const handleSelect = (opt) => {
@@ -36,7 +50,8 @@ export default function StationRead({ audioEnabled, onComplete }) {
     setAnswered(true);
     const isCorrect = parseInt(opt) === targetNumber;
     if (audioEnabled) {
-      narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
+      narrationRef.current?.cancel();
+      narrationRef.current = narrate(isCorrect ? simulateCorrectNarration() : simulateIncorrectNarration(), true);
     }
     setRoundResults(prev => [...prev, isCorrect]);
   };

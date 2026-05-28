@@ -2,7 +2,7 @@
 // All text matches on-screen UI text exactly
 // Content policy: paragraphs & questions only, never titles
 
-import { say, ask, cheer, emphasize, think, celebrate, encourage } from './audio.js';
+import { say, ask, cheer, emphasize, think, celebrate, instruct } from './audio.js';
 
 /**
  * Intro Screen Narration (3 segments)
@@ -103,7 +103,7 @@ export function simulateStationCIntro() {
  */
 export function simulateCorrectNarration() {
   return [
-    encourage("That's correct! Well done!"),
+    cheer("That's correct! Well done!"),
     celebrate("You're really understanding place value!"),
   ];
 }
@@ -113,7 +113,7 @@ export function simulateCorrectNarration() {
  */
 export function simulateIncorrectNarration() {
   return [
-    encourage("Not quite right, but that's okay!"),
+    cheer("Not quite right, but that's okay!"),
     think("Let's try again. Look carefully at each place value column."),
   ];
 }
@@ -124,7 +124,7 @@ export function simulateIncorrectNarration() {
 export function playIntroNarration() {
   return [
     say("Now it's time to test your skills with 100 questions!"),
-    encourage("Answer correctly to build your streak and earn bonus points. You've got this!"),
+    cheer("Answer correctly to build your streak and earn bonus points. You've got this!"),
   ];
 }
 
@@ -137,7 +137,7 @@ export function streakNarration(streak) {
   if (streak === 3) {
     return [
       celebrate("Amazing! You've got a 3-question streak!"),
-      encourage("Keep going to earn even more bonus points!"),
+      cheer("Keep going to earn even more bonus points!"),
     ];
   } else if (streak === 5) {
     return [
@@ -166,12 +166,12 @@ export function reflectNarration(stars) {
     segments.push(cheer("You've mastered numbers to 200!"));
   } else if (stars === 2) {
     segments.push(celebrate("Great job! You earned 2 stars!"));
-    segments.push(encourage("You're doing really well with place value!"));
+    segments.push(cheer("You're doing really well with place value!"));
   } else if (stars === 1) {
-    segments.push(encourage("Good effort! You earned 1 star!"));
+    segments.push(cheer("Good effort! You earned 1 star!"));
     segments.push(say("Keep practicing and you'll get even better!"));
   } else {
-    segments.push(encourage("Thanks for trying!"));
+    segments.push(cheer("Thanks for trying!"));
     segments.push(say("Practice makes progress. Try again to improve your score!"));
   }
   
@@ -196,7 +196,7 @@ export function genericCelebration() {
  */
 export function genericEncouragement() {
   return [
-    encourage("Keep trying! You're learning!"),
+    cheer("Keep trying! You're learning!"),
     think("Every mistake helps us learn something new."),
   ];
 }

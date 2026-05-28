@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
 import Mascot from '../shared/Mascot';
@@ -16,16 +16,19 @@ const STATIONS = [
 export default function SimulatePhase() {
   const { advancePhase, audioEnabled, completeStation, simulateProgress } = useGame();
   const [currentStation, setCurrentStation] = useState(null); // null = overview
+  const narrationRef = useRef(null);
 
   const allDone = STATIONS.every(s => simulateProgress[s.id]?.completed);
 
   const handleStationComplete = (stationId) => {
     completeStation(stationId);
+    narrationRef.current?.cancel();
     stopNarration();
     setCurrentStation(null);
   };
 
   const handleContinue = () => {
+    narrationRef.current?.cancel();
     stopNarration();
     advancePhase();
   };

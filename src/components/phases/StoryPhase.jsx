@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../../context/GameContext';
-import { narrate, stopNarration } from '../../utils/audio';
+import { narrate, stopNarration, preloadNarration } from '../../utils/audio';
 import { storyScene1Narration, storyScene2Narration, storyScene3Narration } from '../../utils/narration';
 import STORY_IMAGES from '../../config/storyImages.js';
 
@@ -123,16 +123,38 @@ const SCENES = [
 export default function StoryPhase() {
   const { advancePhase, audioEnabled } = useGame();
   const [sceneIndex, setSceneIndex] = useState(0);
+  const narrationRef = useRef(null);
 
   const scene = SCENES[sceneIndex];
   const isLast = sceneIndex === SCENES.length - 1;
 
+  // Preload current AND next scene's audio eagerly
   useEffect(() => {
-    if (audioEnabled) narrate(scene.narration(), true);
-    return () => stopNarration();
+    if (audioEnabled) {
+      preloadNarration(scene.narration());
+      if (sceneIndex + 1 < SCENES.length) {
+        preloadNarration(SCENES[sceneIndex + 1].narration());
+      }
+    }
+  }, [sceneIndex, audioEnabled]);
+
+  // Play narration after a short delay (100ms after scene change)
+  useEffect(() => {
+    if (audioEnabled) {
+      narrationRef.current?.cancel();
+      const timer = setTimeout(() => {
+        narrationRef.current = narrate(scene.narration(), true);
+      }, 200);
+      return () => {
+        clearTimeout(timer);
+        narrationRef.current?.cancel();
+      };
+    }
+    return () => { narrationRef.current?.cancel(); };
   }, [sceneIndex, audioEnabled]);
 
   const go = (dir) => {
+    narrationRef.current?.cancel();
     stopNarration();
     if (dir === 1 && !isLast) setSceneIndex(s => s + 1);
     else if (dir === 1 && isLast) advancePhase();
