@@ -4,6 +4,12 @@
 
 import { say, ask, cheer, emphasize, think, celebrate, instruct } from './audio.js';
 
+export function myNewPhaseNarration() {
+  return [
+    say("Here is my new pedagogical line!")
+  ];
+}
+
 /**
  * Intro Screen Narration (3 segments)
  */

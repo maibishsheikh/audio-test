@@ -1,6 +1,6 @@
 // Auto-generated audio map — DO NOT EDIT MANUALLY
 // Run: node scripts/generate_audio.js
-// Generated: 2026-05-28T17:55:28.007Z
+// Generated: 2026-05-28T18:19:22.627Z
 // Maps exact narration text strings → pre-generated .mp3 asset paths
 
 const audioMap = {
@@ -59,8 +59,7 @@ const audioMap = {
   "Fantastic work!": "/assets/audio/audio_fantastic_work_52.mp3",
   "You're doing an amazing job!": "/assets/audio/audio_you_re_doing_an_amazing_job_53.mp3",
   "Keep trying! You're learning!": "/assets/audio/audio_keep_trying_you_re_learning_54.mp3",
-  "Every mistake helps us learn something new.": "/assets/audio/audio_every_mistake_helps_us_learn_something_new_55.mp3",
-  "Outstanding work! You've mastered numbers to 200!": "/assets/audio/audio_outstanding_work_you_ve_mastered_numbers_to_200_56.mp3"
+  "Every mistake helps us learn something new.": "/assets/audio/audio_every_mistake_helps_us_learn_something_new_55.mp3"
 };
 
 export default audioMap;

@@ -141,6 +141,7 @@ const PHRASES = [
   { text: "You're doing an amazing job!",                                                                                  style: 'celebration'   },
   { text: "Keep trying! You're learning!",                                                                                 style: 'encouragement' },
   { text: "Every mistake helps us learn something new.",                                                                   style: 'thinking'      },
+  { text: "Here is my new pedagogical line!",                                                                              style: 'statement'     },
 
   // Reflect badge narration
   { text: "Outstanding work! You've mastered numbers to 200!",                                                             style: 'celebration'   },
